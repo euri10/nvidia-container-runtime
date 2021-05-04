@@ -1,3 +1,6 @@
 dist
-testing/Dockerfile
-testing/containers
+*.swp
+*.swo
+test/output
+/runc
+/nvidia-container-runtime

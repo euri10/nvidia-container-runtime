@@ -1,5 +1,5 @@
 # nvidia-container-runtime
-[![GitHub license](https://img.shields.io/badge/license-New%20BSD-blue.svg?style=flat-square)](https://raw.githubusercontent.com/NVIDIA/nvidia-container-runtime/master/LICENSE)
+[![GitHub license](https://img.shields.io/badge/License-Apache%202.0-blue.svg?style=flat-square)](https://raw.githubusercontent.com/NVIDIA/nvidia-container-runtime/master/LICENSE)
 [![Package repository](https://img.shields.io/badge/packages-repository-b956e8.svg?style=flat-square)](https://nvidia.github.io/nvidia-container-runtime)
 
 A modified version of [runc](https://github.com/opencontainers/runc) adding a custom [pre-start hook](https://github.com/opencontainers/runtime-spec/blob/master/config.md#prestart) to all containers.  
@@ -96,13 +96,57 @@ This variable controls which GPUs will be made accessible inside the container.
 * `none`: no GPU will be accessible, but driver capabilities will be enabled.
 * `void` or *empty* or *unset*: `nvidia-container-runtime` will have the same behavior as `runc`.
 
+**Note**: When running on a MIG capable device, the following values will also be available:
+* `0:0,0:1,1:0`, `MIG-GPU-fef8089b/0/1` …: a comma-separated list of MIG Device UUID(s) or index(es).
+
+Where the MIG device indices have the form `<GPU Device Index>:<MIG Device Index>` as seen in the example output:
+```
+$ nvidia-smi -L
+GPU 0: Graphics Device (UUID: GPU-b8ea3855-276c-c9cb-b366-c6fa655957c5)
+  MIG Device 0: (UUID: MIG-GPU-b8ea3855-276c-c9cb-b366-c6fa655957c5/1/0)
+  MIG Device 1: (UUID: MIG-GPU-b8ea3855-276c-c9cb-b366-c6fa655957c5/1/1)
+  MIG Device 2: (UUID: MIG-GPU-b8ea3855-276c-c9cb-b366-c6fa655957c5/11/0)
+```
+
+### `NVIDIA_MIG_CONFIG_DEVICES`
+This variable controls which of the visible GPUs can have their MIG
+configuration managed from within the container. This includes enabling and
+disabling MIG mode, creating and destroying GPU Instances and Compute
+Instances, etc.
+
+#### Possible values
+* `all`: Allow all MIG-capable GPUs in the visible device list to have their
+  MIG configurations managed.
+
+**Note**:
+* This feature is only available on MIG capable devices (e.g. the A100).
+* To use this feature, the container must be started with `CAP_SYS_ADMIN` privileges.
+* When not running as `root`, the container user must have read access to the
+  `/proc/driver/nvidia/capabilities/mig/config` file on the host.
+
+### `NVIDIA_MIG_MONITOR_DEVICES`
+This variable controls which of the visible GPUs can have aggregate information
+about all of their MIG devices monitored from within the container. This
+includes inspecting the aggregate memory usage, listing the aggregate running
+processes, etc.
+
+#### Possible values
+* `all`: Allow all MIG-capable GPUs in the visible device list to have their
+  MIG devices monitored.
+
+**Note**:
+* This feature is only available on MIG capable devices (e.g. the A100).
+* To use this feature, the container must be started with `CAP_SYS_ADMIN` privileges.
+* When not running as `root`, the container user must have read access to the
+  `/proc/driver/nvidia/capabilities/mig/monitor` file on the host.
+
 ### `NVIDIA_DRIVER_CAPABILITIES`
 This option controls which driver libraries/binaries will be mounted inside the container.
 
 #### Possible values
 * `compute,video`, `graphics,utility` …: a comma-separated list of driver features the container needs.
 * `all`: enable all available driver capabilities.
-* *empty* or *unset*: use default driver capability: `utility`.
+* *empty* or *unset*: use default driver capability: `utility,compute`.
 
 #### Supported driver capabilities
 * `compute`: required for CUDA and OpenCL applications.
@@ -140,6 +184,9 @@ If the version of the NVIDIA driver is insufficient to run this version of CUDA,
 Similar to `NVIDIA_REQUIRE_CUDA`, for legacy CUDA images.  
 In addition, if `NVIDIA_REQUIRE_CUDA` is not set, `NVIDIA_VISIBLE_DEVICES` and `NVIDIA_DRIVER_CAPABILITIES` will default to `all`.
 
-## Copyright and License
+## Issues and Contributing
 
-This project is released under the [BSD 3-clause license](https://github.com/NVIDIA/nvidia-container-runtime/blob/master/LICENSE).
+[Checkout the Contributing document!](CONTRIBUTING.md)
+
+* Please let us know by [filing a new issue](https://github.com/NVIDIA/nvidia-docker/issues/new)
+* You can contribute by opening a [pull request](https://help.github.com/articles/using-pull-requests/)
